@@ -4,6 +4,7 @@
 
 using namespace std;
 
+template<typename Tid, typename Tlogin, typename Tpassword>
 class Person
 {
 public:
@@ -12,11 +13,11 @@ public:
     unsigned int age;
     unsigned int* agePointer;
 
-    void PrintInfo() const;
-
-    explicit Person(string _name, int _age, string _passportData)
+    explicit Person(Tid _id, string _name, int _age, string _passportData)
     {
-        if (_name == "Платон")
+        id = _id;
+
+        if (_name == "Родин")
         {
             cout << "Неподходящие имя!" << endl;
             name = "Безымянный";
@@ -30,9 +31,21 @@ public:
         agePointer = &age;
         passportData = _passportData;
         counter++;
+
+        cout << "В танчики играете, " << name << ", м? (1, 0)" << endl;
+        bool userInput;
+        cin >> userInput;
+        if (userInput)
+        {
+            cout << "Введите логин: " << endl;
+            cin >> tanchikiLogin;
+            cout << "Введите пароль: " << endl;
+            cin >> tanchikiPassword;
+        }
     }
 
-    // Конструктор копирования заменяет копирование по умолчанию
+    void PrintInfo() const;
+
     Person(Person& other)
     {
         name = other.name;
@@ -69,8 +82,6 @@ public:
         return *this;
     }
 
-    // Перегрузка оператора вычитания с возвращением нового объекта через конструктор
-    // Бинарный оператор с одним параметром
     Person operator-(const Person& other) const
     {
         int temp = age - other.age;
@@ -78,13 +89,11 @@ public:
         return Person{name, temp, passportData};
     }    
 
-    // При перегрузке операторов не обязательно возвращать объект класса. Это может быть любой объект в зависимости от ситуации.
     int operator+(int value)
     {
         return age + value;
     }
 
-    // Логические операторы
     bool operator==(const Person& other) const // на дз почему можно вызвать приватный passportData
     {
         if (name == other.name && age == other.age && passportData == other.passportData)
@@ -99,60 +108,37 @@ public:
         return age > other.age;
     }
 
+    
+private:
+    Tlogin tanchikiLogin;
+    Tpassword tanchikiPassword;
 protected:
+    Tid id;
     string passportData;
     string educationLevel;
 };
 
-// Бинарный оператор с двумя параметрами перегружается вне класса, поскольку принимает два независимых объекта
-Person operator+(const Person& person1, const Person& person2)
-{
-    int temp = person1.age + person2.age;
-    if (temp <= 0) temp = 0;
-    return Person{ person1.name, temp, person1.GetPassportData() };
-}
+//Person operator+(const Person& person1, const Person& person2)
+//{
+//    int temp = person1.age + person2.age;
+//    if (temp <= 0) temp = 0;
+//    return Person{ person1.name, temp, person1.GetPassportData() };
+//}
+//
+//ostream& operator<<(ostream& stream, const Person& person)
+//{
+//    stream << "Имя: " << person.name << ". Возраст: " << *person.agePointer << endl; return stream;
+//}
 
-// операторы потока не относятся к классу, поэтому должны быть переопределены вне его.
-ostream& operator<<(ostream& stream, const Person& person)
+template<typename Tid, typename Tlogin, typename Tpassword>
+void Person<Tid, Tlogin, Tpassword>::PrintInfo() const
 {
-    stream << "Имя: " << person.name << ". Возраст: " << *person.agePointer << endl; return stream;
-}
-
-void Person::PrintInfo() const
-{
-    cout << "Имя: " << name << ". Возраст: " << *agePointer << endl;
+    cout << "ID: " << id << ". Имя: " << name << ". Возраст: " << *agePointer << endl;
     cout << "Серия и номер паспорта: " << passportData << endl;
+    cout << "======================" << endl;
+    cout << "Танчики логин: " << tanchikiLogin << endl;
+    cout << "Танчики пароль: " << tanchikiPassword << endl;
 }
-
-//class Student : protected Person
-//{
-//public:
-//    void Study()
-//    {
-//        cout << name << endl;
-//    }
-//    void MissClass();
-//private:
-//    void PassExamAutomatically();
-//protected:
-//    
-//};
-//
-//class CollegeStudent : Student
-//{
-//    void SetCollegeEducationLevel()
-//    {
-//        SetEducation("Среднее профессиональное");
-//    }
-//};
-//
-//class UniversityStudent : Student
-//{
-//    void SetUniversityEducationLevel()
-//    {
-//        SetEducation("высшее");
-//    }
-//};
 
 int main()
 {
@@ -160,17 +146,16 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    Person chelovek1("Leon", 17, "4444 666666");
-    Person chelovek2("Zloy David B myte .", 10, "4444 666666");
+    // Чтобы явно указать компилятору тип данных, которые передается в шаблон, необходимо использовать следующую форму записи:
+    Person<string, string, string> chelovek1{ "brawl stars", "Leon", 17, "4444 666666" };
+    //Person<int> chelovek2{ 0, "Zloy David B myte .", 10, "4444 666666" };
+    //Person<double> chelovek3{ 36.6, "Alexey shopkeeper", 10, "4444 666666" };
     chelovek1.PrintInfo();
-    chelovek2.PrintInfo();
-    //cout << chelovek1 - chelovek2;
-    //cout << chelovek1 + chelovek2;
-    cout << chelovek2 + 7;
-    chelovek2.PrintInfo();
-
-    cout << (chelovek1 == chelovek2);
-    cout << (chelovek1 > chelovek2);
-
-    // ПЕРЕГРУЗКА ОПЕРАТОРОВ ЭТО ФУНКЦИЯ, КОТОРАЯ СРАБАТЫВАЕТ, КОГДА ОПЕРАТОРЫ (КРОМЕ '.', '*', '::', '?:', '#', '##') ПРИМЕНЯЮТСЯ К ОБЪЕКТУ КЛАССА ИЛИ СТРУКТУРЕ. ТАКОЙ ОБЪЕКТ БУДЕТ СЧИТАТЬСЯ ПРОГРАММОЙ ЗА ОПЕРАНД!
+    //chelovek2.PrintInfo();
+    //chelovek3.PrintInfo();
 }
+
+// Практика:
+// 1. В классе Person создать одну переменную с балансом средств в банке и две новые шаблонные переменные: номер счета в банке, секретное слово/код для вывода средств. Инициалзация происходит в конструкторе при передаче параметров.
+// 2. Объявить в классе функцию вывода средств, которая бы списывала со счета введенную пользователем сумму, спрашивая у него секретное слово/код. реализовать функцию вне класса.
+// 3. Объявить в классе функцию смены банка и секретного слова, которая просит пользователя сначала ввести секретное слово/код от ынешнего банка, а затем задать новый банк и секретное слово/код
