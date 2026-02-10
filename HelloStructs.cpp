@@ -1,6 +1,7 @@
 ﻿#include <string>
 #include <Windows.h>
 #include <iostream>
+#include <ChocoChocobo/logger.cpp>
 
 using namespace std;
 
@@ -140,17 +141,15 @@ void Person<Tid, Tlogin, Tpassword>::PrintInfo() const
     cout << "Танчики пароль: " << tanchikiPassword << endl;
 }
 
-// Шаблонная функция, принимающая одинковые параметры
-template<typename T> 
-T Sum(T number1, T number2); // где T - возвращаемый шаблонный тип данных, (T, T) - параметры функции (не шаблона!) 
-
-template<typename T>
-T Sum(T number1, T number2, string name);
+//template<typename T> 
+//T Sum(T number1, T number2); 
+//
+//template<typename T>
+//T Sum(T number1, T number2, string name);
 
 template<typename T>
 void TSwap(T& value1, T& value2);
 
-// Иногда неизвестно какой тип данных будет возвращаться или появляется необходимость сказать компилятору выводить точный тип возвращаемого значения. В этом случае можно и нужно использовать "заменитель типа": decltype(auto)
 template<typename T> decltype(auto) CountAverage(const T array[], const unsigned size)
 {
     T result{};
@@ -161,21 +160,16 @@ template<typename T> decltype(auto) CountAverage(const T array[], const unsigned
     return result / size;
 }
 
+// Синглтон класс логирования программы
+
+// ГОСТ 19.001-77
 int main()
 {
     setlocale(LC_ALL, "Ru");
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    // Чтобы явно указать компилятору тип данных, которые передается в шаблон, необходимо использовать следующую форму записи:
-    //Person<string, string, string> chelovek1{ "brawl stars", "Leon", 17, "4444 666666" };
-    //Person<int> chelovek2{ 0, "Zloy David B myte .", 10, "4444 666666" };
-    //Person<double> chelovek3{ 36.6, "Alexey shopkeeper", 10, "4444 666666" };
-    //chelovek1.PrintInfo();
-    //chelovek2.PrintInfo();
-    //chelovek3.PrintInfo();
-
-    cout << "Int: " << Sum<int>(5, 5) << endl;
+    /*cout << "Int: " << Sum<int>(5, 5) << endl;
     cout << "Double: " << Sum < double > (5.5, 5.5) << endl;
     cout << "String: " << Sum<string>(string("5"), string("5")) << endl;
     
@@ -184,21 +178,26 @@ int main()
     double array1[]{ 3.3, 5.5, 7.7, 9.9, 11.11, 13.13 };
     cout << "Double array: " << CountAverage(array1, 6) << endl;
     char array2[]{ 'п', 'о', 'м', 'и', 'н', 'к', 'и'};
-    cout << "Char array: " << CountAverage(array2, 7) << endl;
+    cout << "Char array: " << CountAverage(array2, 7) << endl;*/
+
+    Logger::GetInstance().Log("Привет!");
+    Logger::GetInstance().Log("испугался не бойся!");
+    Logger::GetInstance().Log("я друг!");
+    Logger::GetInstance().Log("я!");
 }
 
-template<typename T>
-T Sum(T number1, T number2)
-{
-    return number1 + number2;
-}
-
-template<typename T>
-T Sum(T number1, T number2, string name)
-{
-    cout << name << " сложил два числа! Получилось: " << number1 + number2;
-    return number1 + number2;
-}
+//template<typename T>
+//T Sum(T number1, T number2)
+//{
+//    return number1 + number2;
+//}
+//
+//template<typename T>
+//T Sum(T number1, T number2, string name)
+//{
+//    cout << name << " сложил два числа! Получилось: " << number1 + number2;
+//    return number1 + number2;
+//}
 
 template<typename T> void TSwap(T& value1, T& value2)
 {
