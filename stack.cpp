@@ -34,17 +34,30 @@ const int* peek(const element* stack)
 	return &stack->value;
 }
 
+// Возвращение следующего элемента в стеке от передаваемого в параметр
 element* NextElement(const element* element)
 {
-
+	if (element) return element->next;
+	return nullptr;
 }
 
-element* LastElement(const element* element)
+// Возвращение последнего элемента в стеке
+element* LastElement(const element* elem)
 {
-
+	// Перебор указателей на последующий элемент в стеке
+	if (elem) while (elem->next) elem = elem->next;
+	return (element*)elem;
 }
 
+// Очистка памяти всех элементов стека посредством обращения к ним через указатель
 void ClearStack(element*& stack)
 {
-
+	while (stack)
+	{
+		element* toRemove = stack; // создание указателя на объект, который нужно очистить
+		stack = stack->next; // продвижение по следующему элементу в стеке
+	}
+	// 1 цикл: 
+	//			- создаем объект элемента в который записываем первый элемент стека
+	//			- в параметр записываем следующий элемент стека, как бы продвигая итерацию вперед
 }
