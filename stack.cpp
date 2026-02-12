@@ -61,3 +61,28 @@ void ClearStack(element*& stack)
 	//			- создаем объект элемента в который записываем первый элемент стека
 	//			- в параметр записываем следующий элемент стека, как бы продвига€ итерацию вперед
 }
+
+void FillStack(element*& stack)
+{
+	for (int i = 0; i <= 20; i++)
+	{
+		push(stack, i);
+	}
+}
+
+void PrintStack(const element* stack)
+{
+	//  лючевое слово авто насто€тельно рекомендуетс€ к использованию только в циклах и линейных списках!  омпил€тору гораздо удобнее самосто€тельно определ€ть тип данных, если он предсказуем, например в массивах или в линейных списках
+	auto currentElement = (element*)stack; //  ѕолучение указател€ на вершину стека
+	auto lastElement = LastElement(stack);
+	while (currentElement)
+	{
+		// ѕолучение значени€ текущего элемента стека
+		auto value = peek(currentElement);
+
+		std::cout << *value << std::endl;
+
+		// ¬ыставление следующего элемента в стеке как текущего
+		currentElement = NextElement(currentElement);
+	}
+}

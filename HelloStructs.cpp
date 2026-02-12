@@ -3,29 +3,17 @@
 #include <iostream>
 #include "stack.h"
 
-void FillStack(element*& stack)
+double Divide(int number1, int number2)
 {
-    for (int i = 0; i <= 20; i++)
+    if (!number2) // number2 == 0
     {
-        push(stack, i);
+        throw 0; // выкидываем программе исключение типа данных int
     }
-}
-
-void PrintStack(const element* stack)
-{
-    // Ключевое слово авто настоятельно рекомендуется к использованию только в циклах и линейных списках! Компилятору гораздо удобнее самостоятельно определять тип данных, если он предсказуем, например в массивах или в линейных списках
-    auto currentElement = (element*)stack; //  Получение указателя на вершину стека
-    auto lastElement = LastElement(stack);
-    while (currentElement)
+    if (number2 > number1)
     {
-        // Получение значения текущего элемента стека
-        auto value = peek(currentElement);
-
-        std::cout << *value << std::endl;
-
-        // Выставление следующего элемента в стеке как текущего
-        currentElement = NextElement(currentElement);
+        throw std::string("Знаменатель больше числителя, дубина!");
     }
+    return number1 / number2;
 }
 
 int main()
@@ -34,9 +22,24 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    element* stack = nullptr;
-    FillStack(stack);
-    PrintStack(stack);
-    ClearStack(stack);
+    try
+    {
+        std::cout << Divide(7, 8) << std::endl;
+    }
+    catch (const std::string& errorMessage) 
+    {
+        std::cout << "Возникла ошибка, ты дурень: " << errorMessage << std::endl;
+    }
+    catch(const int intMessage)
+    {
+        std::cout << "Возникла int-овая ошибка, ты дурень x2:" << intMessage << std::endl;
+    }
+    std::cout << "Я работаю дальше!" << std::endl;
+
     system("pause");
 }
+
+//      Практика
+// 1. В функции Divide принимать параметры не int, а double
+// 2. Обработать результат 1 при делении. Тип данных для throw - int
+// 3. Обработать ситуацию, когда деление оставляет после себя остаток. Например, 5/2 = 2.5. Если хвостик .5 есть после деления - выкидывать программе обработку
