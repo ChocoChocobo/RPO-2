@@ -2,69 +2,29 @@
 #include <Windows.h>
 #include <iostream>
 
-class Product
+struct David
 {
-public:
-    virtual ~Product() {}
-    virtual std::string DoSomething() const = 0;
+    explicit David(int) {}
+    David(double) {}
 };
 
-class SodaProduct : public Product
+struct Evangelion
 {
-public:
-    std::string DoSomething() const override
-    {
-        return "Пшшшшшшшшш";
-    }
+    David david1, david2;
 };
 
-class CookiesProduct : public Product
+struct Leon
 {
-public:
-    std::string DoSomething() const override
-    {
-        return "Хрусть";
-    }
+    int x;
+    int y;
 };
 
-class ProductFabric
-{
-public:
-    ~ProductFabric() { };
-    virtual Product* CreateProduct() const = 0;
-    
-    
-    std::string FabricDoSomething() const
-    {
-        Product* product = this->CreateProduct();
-        std::string result = "Фабрика произвела единицу продукта: " + product->DoSomething();
-        delete product;
-        return result;
-    }
-};
+struct Platon {};
 
-class SodaFactory : public ProductFabric
+struct CPlusPlus
 {
-public:
-    Product* CreateProduct() const override
-    {
-        return new SodaProduct{};
-    }
+    CPlusPlus(Platon){}
 };
-
-class CookiesFactory : public ProductFabric
-{
-public:
-    Product* CreateProduct() const override
-    {
-        return new CookiesProduct{};
-    }
-};
-
-void OrderProduct(const ProductFabric& fabric)
-{
-    std::cout << fabric.FabricDoSomething() << std::endl;
-}
 
 int main()
 {
@@ -72,11 +32,39 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    SodaFactory* sodaFactory = new SodaFactory();
-    CookiesFactory* cookiesFactory = new CookiesFactory();
+    int x1 = 1; // Исторически сложившийся способ инициализации
+    int x2(2);
+    int x3{ 3 };
+    int x4 = { 4 }; // Практически идентичен int x3{ 3 }
+    auto x5{ 5 };
 
-    OrderProduct(*sodaFactory);
-    OrderProduct(*cookiesFactory);
+    char goida[5] {'g', 'o', 'i', 'd', 'a'};
+
+    for (int i = 0; i < 5; i++)
+    {
+        std::cout << goida[i] << std::endl;
+    }
+
+    Leon leon = {  };
+    std::cout << leon.x << leon.y << std::endl;
+    if (leon.x)
+    {
+        std::cout << "Яблоко" << std::endl;
+    }
+    else
+    {
+        std::cout << "Тыблоко" << std::endl;
+    }
+
+    David david(5);
+    David david1 = 5;
+    
+    CPlusPlus(Platon());
 
     system("pause");
 }
+
+// =========Практика=========
+// Написать структуру координаты (Coordinate), имеющую в качестве полей три int точки (x, y, z) и функцию SetCoordinates, которая бы задавала точкам новое значение. Конструктор explicit. 
+// В main() создать точки разными способам инициализации и вызвать функцию SetCoordinates у них.
+// Примечание: по необходимости дополнить структуру полями, если возникнут ограничения при инициализации
