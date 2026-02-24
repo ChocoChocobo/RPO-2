@@ -1,36 +1,96 @@
 ﻿#include <string>
 #include <Windows.h>
 #include <iostream>
-#include <thread>
-#include <mutex>
-#include <vector>
-#include <chrono>
-#include <future>
 
-using namespace std::chrono_literals;
+class Context;
 
-std::mutex mainMutex;
-std::vector<std::exception_ptr> exceptionsArray;
-
-void ThrowException()
+// Включает в себя состояния программы и контекст, который может быть использован, как способ передать состояние другому объекту.
+class State
 {
-    throw std::exception("Лудка.");
-}
+public:
+    ~State() {}
+    // Публичный метод, позволяющий переключиться на конкретное состояние
+    void SetContext(Context* context)
+    {
+        this->context = context;
+    }
+    virtual void DoSomething1() = 0;
+    virtual void DoSomething2() = 0;
+protected:
+    Context* context;
+};
 
-// Функция, которая обрабатывает исключения параллельно
-void AsyncLudovolk() 
+// Определяет интерфейс, позволяющий клиентам обратиться к конкретному состоянию
+class Context
 {
-	std::this_thread::sleep_for(3s);
+public:
+    Context(State* state)
+    {
+        this->TransitionToState(state);
+    }
+    // Контекст позволяет изменять состояние объекта с помощью этой функции
+    void TransitionToState(State* state)
+    {
+        std::cout << "Происходит смена контекста на другое состояние" << typeid(*state).name() << std::endl;
+        // Если присутствует состояние у контекста, очищаем память указателя на состояние и задаем новое
+        if (this->state != nullptr)
+        {
+            delete this->state;
+        }
+        this->state = state;
+        this->state->SetContext(this);
+    }
+    void Request1()
+    {
+        this->state->DoSomething1();
+    }
+    void Request2()
+    {
+        this->state->DoSomething2();
+    }
+    ~Context()
+    {
+        delete state;
+    }
+private:
+    State* state;
+};
 
-	try
-	{
-		ThrowException();
-	}
-	catch (const std::exception& mutexException)
-	{
-		std::lock_guard<std::mutex> lock(mainMutex);
-		exceptionsArray.push_back(std::current_exception());
-	}
+class AttackState : public State
+{
+public:
+    void DoSomething1() override;
+
+    void DoSomething2() override
+    {
+        std::cout << "Атакует!" << std::endl;
+    }
+};
+
+class DodgeState : public State
+{
+    // Переопределяемые функции, позволяющие выполнить специфичную логику, характерную для состояния. Например, логика нанесения урона врагу при состоянии атаки или повышение ловкости при состоянии уворота
+public:
+    void DoSomething1() override
+    {
+        std::cout << "Уворот!" << std::endl;
+    }
+
+    void DoSomething2() override
+    {
+        std::cout << "DodgeState обрабатывает запрос" << std::endl;
+        std::cout << "DodgeState пытается изменить состояние контекста" << std::endl;
+
+        this->context->TransitionToState(new AttackState);
+    }
+};
+
+void AttackState::DoSomething1()
+{
+    std::cout << "AttackState обрабатывает запрос" << std::endl;
+    std::cout << "AttackState пытается изменить состояние контекста" << std::endl;
+
+    this->context->TransitionToState(new DodgeState);
 }
 
 int main()
@@ -39,50 +99,15 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-	// future - планирование процесса асинхронного объекта async
-	// Создается объект планирования процесса, в который помещается асинхронный объект с указанием протокола запуска и функции
-	std::future<void> plannedProcess = std::async(std::launch::async, AsyncLudovolk);	
-
-	// Симуляция работы основного потока
-	for (int i = 0; i < 5; i++)
-	{
-		std::lock_guard<std::mutex> mainLock(mainMutex);
-		if (exceptionsArray.empty()) std::cout << "Поток main работает, исключений нет..." << std::endl;
-		else std::cout << "Поток main работает, исключение поймано!" << std::endl;
-
-		std::this_thread::sleep_for(3s);
-	}
-
-	std::cout << "Работа main завершена. Фоновые процессы все еще выполняются" << std::endl;
-
-	std::this_thread::sleep_for(3s);
-
-	std::lock_guard<std::mutex> mainLock(mainMutex);
-	for (auto& exception : exceptionsArray)
-	{
-		try
-		{
-			if (exception != nullptr)
-			{
-				std::rethrow_exception(exception);
-			}
-		}
-		catch (const std::exception& mutexException)
-		{
-			std::cout << "Исключение поймано: " << mutexException.what() << std::endl;
-		}
-	}
-
-	if (exceptionsArray.empty())
-	{
-		std::cout << "После ожидания исключений все еще нет :(" << std::endl;
-	}
+    Context* context = new Context(new AttackState);
+    // Первым состоянием выступает атака, которая атакует и переключается на состояние уворота.
+    // КОНТЕКСТ АТАКИ
+    context->Request2();
+    context->Request1();
+    // После переключения на уворот происходит его логику и обратное переключение на атаку
+    // КОНТЕКСТ УВОРОТА
+    context->Request1();
+    context->Request2();
 
     system("pause");
 }
-
-//		Практика
-// С помощью асинхронного выполнения в данной программе просимулировать использование заклинание замедления врага в битве:
-// У игрока есть два действия: просто атаковать, применить заклинание замедления
-// При получении ввода о действии при атаке происходит вывод информации в консоль, что игрок атаковал врага, а при замедлении написать, что замедлил
-// После действия игрока действует враг. У врага вызывается асинхронная функция, где внутри проверяется флаг использовал ли игрок замедление. Если использовал, то заставлять врага атаковать через 3 секунды.
