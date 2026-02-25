@@ -2,96 +2,96 @@
 #include <Windows.h>
 #include <iostream>
 
-class Context;
-
-// Включает в себя состояния программы и контекст, который может быть использован, как способ передать состояние другому объекту.
-class State
+// вкладываемая видеокарта в класс-контейнер компьютера
+class GPU
 {
 public:
-    ~State() {}
-    // Публичный метод, позволяющий переключиться на конкретное состояние
-    void SetContext(Context* context)
+    GPU() {}
+    GPU(std::string modelName)
     {
-        this->context = context;
+        this->modelName = modelName;
     }
-    virtual void DoSomething1() = 0;
-    virtual void DoSomething2() = 0;
-protected:
-    Context* context;
-};
-
-// Определяет интерфейс, позволяющий клиентам обратиться к конкретному состоянию
-class Context
-{
-public:
-    Context(State* state)
+    void PrintInfo()
     {
-        this->TransitionToState(state);
+        std::cout << "Видокарта: " << modelName << std::endl;
     }
-    // Контекст позволяет изменять состояние объекта с помощью этой функции
-    void TransitionToState(State* state)
+    void StartGPU()
     {
-        std::cout << "Происходит смена контекста на другое состояние" << typeid(*state).name() << std::endl;
-        // Если присутствует состояние у контекста, очищаем память указателя на состояние и задаем новое
-        if (this->state != nullptr)
-        {
-            delete this->state;
-        }
-        this->state = state;
-        this->state->SetContext(this);
-    }
-    void Request1()
-    {
-        this->state->DoSomething1();
-    }
-    void Request2()
-    {
-        this->state->DoSomething2();
-    }
-    ~Context()
-    {
-        delete state;
+        std::cout << "Видеокарта начала свою работу!" << std::endl;
     }
 private:
-    State* state;
+    std::string modelName;
 };
 
-class AttackState : public State
+// вкладываемый процессор в класс-контейнер компьютера
+class CPU
 {
 public:
-    void DoSomething1() override;
-
-    void DoSomething2() override
+    CPU() {}
+    CPU(std::string modelName)
     {
-        std::cout << "Атакует!" << std::endl;
+        this->modelName = modelName;
     }
+    void PrintInfo()
+    {
+        std::cout << "Процессор: " << modelName << std::endl;
+    }
+    void StartCPU()
+    {
+        std::cout << "Процессор начал свою работу!" << std::endl;
+    }
+private:
+    std::string modelName;
 };
 
-class DodgeState : public State
+// вкладываемая материнская плата в класс-контейнер компьютера
+class MotherBoard
 {
-    // Переопределяемые функции, позволяющие выполнить специфичную логику, характерную для состояния. Например, логика нанесения урона врагу при состоянии атаки или повышение ловкости при состоянии уворота
 public:
-    void DoSomething1() override
+    MotherBoard() {}
+    MotherBoard(std::string modelName)
     {
-        std::cout << "Уворот!" << std::endl;
+        this->modelName = modelName;
     }
-
-    void DoSomething2() override
+    void PrintInfo()
     {
-        std::cout << "DodgeState обрабатывает запрос" << std::endl;
-        std::cout << "DodgeState пытается изменить состояние контекста" << std::endl;
-
-        this->context->TransitionToState(new AttackState);
+        std::cout << "Материнская плата: " << modelName << std::endl;
     }
+    void StartMotherBoard()
+    {
+        std::cout << "Материнская плата начала свою работу!" << std::endl;
+    }
+private:
+    std::string modelName;
 };
 
-void AttackState::DoSomething1()
+// Класс-контейнер для других объектов классов
+class Computer
 {
-    std::cout << "AttackState обрабатывает запрос" << std::endl;
-    std::cout << "AttackState пытается изменить состояние контекста" << std::endl;
-
-    this->context->TransitionToState(new DodgeState);
-}
+public:
+    Computer(std::string gpuModelName, std::string cpuModelName, std::string motherModelName)
+    {
+        gpu = new GPU(gpuModelName);
+        cpu = new CPU(cpuModelName);
+        motherBoard = new MotherBoard(motherModelName);
+    }
+    void StartComputer()
+    {
+        gpu->StartGPU();
+        cpu->StartCPU();
+        motherBoard->StartMotherBoard();
+    }
+    void PrintSpecifications()
+    {
+        gpu->PrintInfo();
+        cpu->PrintInfo();
+        motherBoard->PrintInfo();
+    }
+private:
+    GPU* gpu; // видеокарта
+    CPU* cpu; // процессор
+    MotherBoard* motherBoard; // материнская плата
+};
 
 int main()
 {
@@ -99,15 +99,124 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    Context* context = new Context(new AttackState);
-    // Первым состоянием выступает атака, которая атакует и переключается на состояние уворота.
-    // КОНТЕКСТ АТАКИ
-    context->Request2();
-    context->Request1();
-    // После переключения на уворот происходит его логику и обратное переключение на атаку
-    // КОНТЕКСТ УВОРОТА
-    context->Request1();
-    context->Request2();
+    Computer computer("GTX 1080", "intel core i7", "ASUS ROG");
+    computer.StartComputer();
+    std::cout << "========" << std::endl;
+    computer.PrintSpecifications();
 
     system("pause");
 }
+
+//          Практика
+// Написать класс дерева, имеющий два поля (кол-во веток, вид дерева). 
+// Написать класс леса с полем массива деревьев. Класс леса должен получать указатели на объекты деревьев извне через соответствующий метод.
+// Если класс леса удаляется, то деревья должны продолжать существовать.
+// Дополнительно реализовать вывод информации о том, что объект был создан или очищен в конструкторах и деструкторах, чтобы убедиться, что деревья продолжают существовать после удаления леса.
+
+// Традиционно принято считать, что композиция - это создание объекта внутри класса (по значению). Агрегация - это создание объекта вне класса. При композиции объект класса не может существовать без класса-контейнера. При агрегации - может. 
+// При каждом из этих способов, помимо создания объектов по значению, можно создавать их динамически, что будет являться более оптимальным способом работы с памятью.
+// Композиция и агрегация почти идентичны. При композиции с созданием по значению происходит копирование объекта в поле класса. Агрегация по указателю работает напрямую с памятью, и создает объект прямо в классе. 
+// Композиция по значению позволяет иметь два объекта (изначально созданный и скопированный), а агрегация по указателю один. Первый вариант отношения классов стоит применять, когда существует необходимость прослеживать изменения, который совершились с объектом класса после присоединения его в класс-контейнер.
+
+//      Элементарными словами
+// Композиция - создание объекта внутри класса. Агрегация - создание вне класса. У каждого из них может быть работа с указателями и со значениями.
+
+// Пример по значению для композиции: 
+//class Person
+//{
+//private:
+//    Leg leg;
+//};
+//
+//class Leg {};
+
+// Пример с указателем для композиции:
+//class Computer
+//{
+//public:
+//    Computer(std::string gpuModelName, std::string cpuModelName, std::string motherModelName)
+//    {
+//        gpu = new GPU(gpuModelName);
+//        cpu = new CPU(cpuModelName);
+//        motherBoard = new MotherBoard(motherModelName);
+//    }
+//    void StartComputer()
+//    {
+//        gpu->StartGPU();
+//        cpu->StartCPU();
+//        motherBoard->StartMotherBoard();
+//    }
+//    void PrintSpecifications()
+//    {
+//        gpu->PrintInfo();
+//        cpu->PrintInfo();
+//        motherBoard->PrintInfo();
+//    }
+//private:
+//    GPU* gpu; // видеокарта
+//    CPU* cpu; // процессор
+//    MotherBoard* motherBoard; // материнская плата
+//};
+
+// Пример по значению для агрегации:
+//class Computer
+//{
+//public:
+//    Computer(GPU gpu, CPU cpu, MotherBoard motherBoard)
+//    {
+//        this->gpu = gpu;
+//        this->cpu = cpu;
+//        this->motherBoard = motherBoard;
+//    }
+//    void StartComputer()
+//    {
+//        gpu.StartGPU();
+//        cpu.StartCPU();
+//        motherBoard.StartMotherBoard();
+//    }
+//    void PrintSpecifications()
+//    {
+//        gpu.PrintInfo();
+//        cpu.PrintInfo();
+//        motherBoard.PrintInfo();
+//    }
+//private:
+//    GPU gpu; // видеокарта
+//    CPU cpu; // процессор
+//    MotherBoard motherBoard; // материнская плата
+//};
+//
+//int main()
+//{
+//    setlocale(LC_ALL, "Ru");
+//    SetConsoleCP(1251);
+//    SetConsoleOutputCP(1251);
+//
+//    GPU gpu("GTX 1080");
+//    CPU cpu;
+//    MotherBoard motherBoard;
+//    Computer computer(gpu, cpu, motherBoard);
+//    computer.StartComputer();
+//    std::cout << "========" << std::endl;
+//    computer.PrintSpecifications();
+//
+//    system("pause");
+//}
+
+// Пример с указателем для агрегации:
+//int main()
+//{
+//    setlocale(LC_ALL, "Ru");
+//    SetConsoleCP(1251);
+//    SetConsoleOutputCP(1251);
+//
+//    GPU* gpu = new GPU("GTX 1080");
+//    CPU* cpu = new CPU();
+//    MotherBoard* motherBoard = new MotherBoard();
+//    Computer computer(gpu, cpu, motherBoard);
+//    computer.StartComputer();
+//    std::cout << "========" << std::endl;
+//    computer.PrintSpecifications();
+//
+//    system("pause");
+//}
