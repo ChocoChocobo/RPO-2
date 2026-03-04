@@ -2,57 +2,10 @@
 #include <Windows.h>
 #include <iostream>
 
-class FlowerBoss
+// Функция, принимающая в качестве третьего параметра указатель на функцию, которая выступает в виде лямбда-выражения
+void DoSomething(int number1, int number2, int (*operation)(int, int))
 {
-public:
-    // Шаблонный метод
-    void GiveOrder() const
-    {
-        this->CollectFlowers();
-        this->SellFlowers();
-        this->RequireCollectFlowers();
-        this->RequireSellFlowers();
-        this->RequirePackageFlowers();
-    }
-protected:
-    void CollectFlowers() const
-    {
-        std::cout << "Цветочный босс говорит собрать цветы" << std::endl;
-    }
-    void SellFlowers() const
-    {
-        std::cout << "Цветочный босс говорит продать цветы" << std::endl;
-    }
-    virtual void RequireCollectFlowers() const {}
-    virtual void RequireSellFlowers() const {}
-    virtual void RequirePackageFlowers() const {}
-};
-
-class PlatonFlower : public FlowerBoss
-{
-protected:
-    void RequireCollectFlowers() const override
-    {
-        std::cout << "Платон слушает и повинуется собирать цветы" << std::endl;
-    }
-    void RequireSellFlowers() const override
-    {
-        std::cout << "Платон слушает и повинуется продавать цветы" << std::endl;
-    }
-};
-
-class SirFlower : public FlowerBoss
-{
-protected:
-    void RequirePackageFlowers() const override
-    {
-        std::cout << "Сир цветок слушает и повинуется упаковывать цветы" << std::endl;
-    }
-};
-
-void ManageWorker(FlowerBoss* flowerBoss)
-{
-    flowerBoss->GiveOrder();
+    std::cout << operation(number1, number2) << std::endl;
 }
 
 int main()
@@ -61,12 +14,60 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    PlatonFlower* platonFlower = new PlatonFlower;
-    ManageWorker(platonFlower);
+    // Безымянная лямбда
+    []() {std::cout << "Привет от лямбды без имени" << std::endl; } ();
 
-    SirFlower* sirFlower = new SirFlower;
-    ManageWorker(sirFlower);
-    delete platonFlower;
+    // Именованная лямбда
+    auto hello{ []() {std::cout << "Привет от именованной лямбды" << std::endl; } };
+
+    // лямбда с параметрами
+    auto printInfo{ [](const std::string& info) {std::cout << info << std::endl; } };
+
+    hello();
+
+    printInfo("Привет РПО");
+
+    // вызов при объявлении лямбды с параметрами
+    [](const std::string& info) {std::cout << info << std::endl; }("Пока от РПО");
+
+    // лямбда с параметрами
+    auto sum{ [](int number1, int number2) {return number1 + number2; } };
+    std::cout << sum(2, 2) << std::endl;
+
+    // лямбда сс явным возвращаемым значением
+    [](int number1, int number2) -> double {return number1 + number2; } (5, 5);
+
+    auto subtract{ [](int number1, int number2) {return number1 - number2; } };
+
+    DoSomething(10, 5, sum);
+    DoSomething(10, 5, subtract);
 
     system("pause");
 }
+
+//      Безымянные лямбда-выражения
+// Представляют собой краткий компактный синтаксис для определения объектов-функций (не объект класса!).
+// Синтаксис объявления: [] (параметры) {действия}
+// Пример объявления: [] () {std::cout << "Привет РПО" << std::endl;};
+// Синтаксис вызова: [] (параметры) {действия} ()
+// Пример вызова: [] () {std::cout << "Привет РПО" << std::endl;} ();
+// Вызов происходит непосредственно при определении, указав после тела выражения круглые скобки со значениями для параметров
+
+//      Именованные лямбда-выражения
+// Лямбда-выражение можно определить как переменную.
+// Пример: auto hello{ []() {std::cout << "Привет РПО" << std::endl; } };
+// Такие выражения также можно определить с параметрами.
+// Пример: auto printInfo{ [](const std::string& info) {std::cout << info << std::endl; } };
+// Лямбда-выражение может возвращать какое-либо значение, как и обычные функции. 
+// Пример: auto sum{ [](int number1, int number2) {return number1 + number2; } };
+// Для того, чтобы установить напрямую возвращемое значение типа после списка параметров, указывается оператор стрелки и возвращаемый тип.
+
+// Лямбда-выражения могут использоваться как параметры для функций, которые представляют собой указатели на функции
+// Функция, принимающая в качестве третьего параметра указатель на функцию, которая выступает в виде лямбда-выражения
+//void DoSomething(int number1, int number2, int (*operation)(int, int))
+//{
+//    std::cout << operation(number1, number2) << std::endl;
+//}
+// На основе того, что передаетсся, можно делать с разным результатом работы лямбды что угодно. В примере выше разные арифметические операции 
+
+// Реализовать простой калькулятор с использованием лямбда-выражений, как в примере с лекции (операции +, -, *, /). В main получать ввод пользователя по выбору операции, в конструкции switch в зависимости от операции вызывать функцию Calculator, передавая в нее лямбда арифметическое лямбда выражение
