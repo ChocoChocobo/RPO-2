@@ -1,100 +1,6 @@
 ﻿#include <string>
 #include <Windows.h>
 #include <iostream>
-#include <list>
-
-class IObserver // интерфейс для наблюдателя
-{
-public:
-    virtual ~IObserver() {};
-    virtual void Update(const std::string& message) = 0; // Функция, обновляющая поступающую информацию наблюдаемому
-};
-
-class ISubject // интерфейс для наблюдамого
-{
-public: 
-    virtual ~ISubject() {};
-    virtual void Subscribe(IObserver *observer) = 0; // Функция, подписывающая на наблюдателя
-    virtual void UnSubscribe(IObserver *observer) = 0; // Функция, отписывающая от наблюдателя
-    virtual void Notify() = 0; // Уведомить наблюдаемого
-};
-
-class Subject : public ISubject
-{
-public:
-    ~Subject()
-    {
-        std::cout << "Наблюдаемый был очищен в памяти" << std::endl;
-    }
-
-    // Методы управления подпиской
-    void Subscribe(IObserver* observer) override
-    {
-        observerList.push_back(observer);
-    }
-
-    void UnSubscribe(IObserver* observer) override
-    {
-        observerList.remove(observer);
-    }
-
-    void Notify() override
-    {
-        // Для того, чтобы определить свою единицу перечисления для такого типа данных, как список, создается итератор, а внего задается начальный объект списка
-        std::list<IObserver*>::iterator iterator = observerList.begin();
-        std::cout << "За объектом наблюдает" << observerList.size() << " наблюдателей" << std::endl;
-        // Пока значение итератора не примет вид последнего объекта из списка
-        while (iterator != observerList.end())
-        {
-            // Вызываем функцию Update у текущего перечисляемого наблюдателя
-            (*iterator)->Update(message);
-            ++iterator; // У объекта итератора перегружен оператор ++
-        }
-    }
-
-    // Функция, при вызове которой задается новое сообщение (новое состояние) для наблюдаемого и происходит автоматическое уведомление наблюдателя через функцию Notify()
-    void CreateMessage(std::string message)
-    {
-        this->message = message;
-        Notify();
-    }
-private:
-    std::list<IObserver*> observerList;
-    std::string message;
-};
-
-class Observer : public IObserver
-{
-public:
-    // Конструктор
-    Observer(Subject& _subject) : subject(_subject)
-    {
-        // Наблюдаемый в классе наблюдателя подписывается на второго сразу же в конструкторе
-        this->subject.Subscribe(this);
-        std::cout << "Наблюдатель проинициализирован" << std::endl;
-    }
-    // Деструктор
-    ~Observer()
-    {
-        std::cout << "Наблюдатель был очищен" << std::endl;
-    }
-    // Переопределенная Update
-    void Update(const std::string& message) override
-    {
-        this->message = message;
-        // Наблюдатель должен реагировать на поступаемое изменение
-        std::cout << "У наблюдателя появилось новое сообщение от наблюдаемого: " << this->message << std::endl;
-    }
-    // Вспомогательная функция по управлению количеством наблюдаемых
-    void UnsubscribeSubject()
-    {
-        subject.UnSubscribe(this);
-        std::cout << "Наблюдаемый был отписан от наблюдателя!" << std::endl;
-    }
-private:
-    Subject& subject;
-    std::string message;
-};
 
 int main()
 {
@@ -102,30 +8,47 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    Subject* subjectLeon = new Subject;
-    Observer* observerGreka = new Observer(*subjectLeon);
-    Observer* observerRak = new Observer(*subjectLeon);
-    Observer* observerReka = new Observer(*subjectLeon);
+    std::unique_ptr<int> pointer; // nullptr
+    std::unique_ptr<int> pointer1{}; // nullptr
+    std::unique_ptr<int> pointer2{nullptr};
 
-    subjectLeon->CreateMessage("Ты ЛОХнесское чудовище");
-    observerReka->UnsubscribeSubject();
+    // Чтобы выделить память и создать в ней объект применяется функция make_unique, где в качестве параметра передается объект, на который будет указывать указатель.
+    std::unique_ptr<int> pointer3{ std::make_unique<int>(5) };
 
-    subjectLeon->CreateMessage("Я люблю крабов");
-    observerRak->UnsubscribeSubject();
+    // для получения стандартного указателя из unique_ptr применяется функция get()
+    int* classicPointer = pointer3.get();
 
-    subjectLeon->CreateMessage("Трусы");
-    observerGreka->UnsubscribeSubject();
+    // Работа с умным указателем:
+    std::cout << "Адрес: " << pointer3.get() << std::endl;
+    std::cout << "Значение: " << *pointer3 << std::endl;
+    *pointer3 = 6;
+    std::cout << "Новое значение: " << *pointer3 << std::endl;
 
-    delete observerGreka;
-    delete observerRak;
-    delete observerReka;
-    delete subjectLeon;
+    // Работа с массивами
+    unsigned int n{ 5 };
+    std::unique_ptr<int[]> pointerToArray{std::make_unique<int[]>(n)};
+    std::cout << "Значение первого элемента: " << pointerToArray[0] << std::endl;
+
+    // Если необходимо освободить память на которую указывает указатель, то применяется функция reset()
+    pointerToArray.reset();
+    std::cout << "Значение первого элемента: " << pointerToArray[0] << std::endl;
+
+
 
     system("pause");
 }
 
+//      Умные указатели
+// Объекты, которые имитируют работу стандартных указателей. Они точно так же содержат адрес, их можно использовать  для обращения к объектам по этому адресу.
+// Находятся они в пространстве имен std:
+// - std::unique_ptr - это указатель, который нельзя скопировать. Применяется, когда необходимо убедиться в том, что у базового указателя только один владелец. Когда уничтожается такой объект, уничтожается и значение, на которое он указывает.
+// - std::shared_ptr - это указатель со счетчиком ссылок. Он будет удален тогда, когда счетчик станет равным нулю. Каждый раз, когда создается новый объект, счетчик ссылок инкрементируется (++). Применяется, когда необходимо присовить один указатель нескольким владельцам, например, когда копия указателя возвращается из класса-контейнера, но требуется сохранить оригинал.
+// - std::weak_ptr - это указатель, который не участвует в подсчете ссылок. Применяется в особых случаях в связке с shared_ptr, когда требуется отслеживать объект, но не требуется, чтобы он оставался в активном состоянии (выделена память).
+// Умные указатели - это способ абстрагироваться от применения new для выделения памяти и delete для очистки. Данные указатели представляют собой обертки над обычными указателями.
+// При создании умного указателя происходит выделение памяти через оператор new, после чего, в зависимости от типа умного указателя, эта память автоматически освобождается, когда указатель выходит из области видимости.
+
 //      Практика
-// 1. Сделать статическую переменную подсчета кол-ва созданных наблюдателей. Продемонстрировать в конструкторе номер создаваемого объекта
-// 2. У наблюдателя создать поле с названием объекта, которое должно быть проинициализировано в констукторе. Выводить в консоль в строках у наблюдателя также его имя
-// 3. В main просить пользователя просить считать 3 уравнения по очерди. Если уравнение решено неверно, то от наблюдаемого должен отписываться один фанат. Если к концу мини-игры у пользователю не остается фанатом, выводить злостное сообщение и создавать, подписывая на наблюдаемого, модератора твича.
-// Прим.: У наблюдаемого должно быть новое поле с ответом, который дает пользователь в консоли. При поступлении нового сообщения наблюдателям, они должны проверять соответствует ли ответ правильным.
+// 1. Необходимо создать уникальный указатель, который бы указывал на массив целочисленных беззнкаовых значений.
+// 2. В цикле данный массив заполнить любым способом.
+// 3. Вывести значения каждого из элементов в цикле.
+// 4. В конце высвободить память для уникального указателя.
