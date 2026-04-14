@@ -3,35 +3,39 @@
 #include <iostream>
 #include <vector>
 
-class IntArray
+// Виртуальный класс 
+class Bird
 {
 public:
-    IntArray(unsigned int size) : data{ new int[size] } { std::cout << "Выделение памяти под объект" << std::endl; }
-    ~IntArray() 
-    {
-        std::cout << "Очищение памяти объекта." << std::endl;
-        delete[] data;
-    }
-    // --------- Удаление конструктора копирования и оператора присваивания
-    // Важно, чтобы ресурс освобождался только один раз. Для этого в классе удаляем конструктор копирования и оператор присваивания, что позволяет избежать ситуации, при которой два объекта могут хранить указатель на одну и ту же  область памяти и затем в деструкторе пытаться освободить эту память.
-    IntArray(IntArray& other) = delete;    
-    IntArray& operator=(IntArray& other) = delete;
+    virtual ~Bird(){}
+    virtual std::string MakeSound() const = 0;
+};
 
-    // Переопределение оператора индексирования для доступа к элементам динамического массива
-    int& operator[](unsigned int index)
+class Pigeon : public Bird
+{
+public:
+    std::string MakeSound() const override
     {
-        return data[index];
+        return "Уруру";
     }
+};
 
-    // Функция по очистке ресурса для объекта и передача ресурса другому объекту
-    int* ReleaseData()
+class Seagull : public Bird
+{
+public:
+    std::string MakeSound() const override
     {
-        int* otherData = data; // Указатель на место памяти, на которое указываете data
-        data = nullptr;
-        return otherData;
+        return "А-а-а";
     }
-private:
-    int* data;
+};
+
+class Sparrow : public Bird
+{
+public:
+    std::string MakeSound() const override
+    {
+        return "Чик-чирик";
+    }
 };
 
 int main()
@@ -40,33 +44,18 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    unsigned int n = { 5 };
-    IntArray array = { n };
+    std::vector<std::unique_ptr<Bird>> birdsArray;
+    birdsArray.push_back(std::make_unique<Sparrow>());
+    birdsArray.push_back(std::make_unique<Pigeon>());
+    birdsArray.push_back(std::make_unique<Seagull>());
 
-    for (unsigned int i = 0; i < n; ++i)
+    // Демонстрация полиморфизма
+    for (auto& bird : birdsArray)
     {
-        array[i] = i * 2;
+        std::cout << bird->MakeSound() << std::endl;
     }
 
-    int* otherData = array.ReleaseData();
+    system("pause");
 
-    for (unsigned int i = 0; i < n; ++i)
-    {
-        std::cout << otherData[i] << std::endl;
-    }
-
-    std::cout << otherData << std::endl;
-    delete[] otherData;
-    std::cout << otherData << std::endl;
+    return 0;
 }
-
-//      RAII - resource acquisition is initialization
-// Это идиома, которая предполагает, что получение ресурса производится при инициализации объекта, а освобождение производится в деструкторе объекта.
-// В отличие от управляемых языков (например, C#, Python, JavaScript), С++ не имеет автоматической сборки мусора. Программа, написанная на языке С++, отвечает за возврат всех ресрусов в операционную систему. Неиспользуемый ресурс называется утечкой. 
-
-// Утечка ресурсов недоступна другим программам до тех пор, пока процесс не завершится!!!
-
-// Современный С++ избегает использования памяти кучи как можно больше, объявляя объекты в стеке. Если ресурс слишком велик для стека, он должен принадлежать объекту. По мере инициализации объекта он получает принадлежащий ему ресурс.Затем объект отвечает за освобождение ресурса в деструкторе. Сам объект владельцев объявляется в стеке. Принцип, в котором объекты имеют собственные ресурсы, называются RAII.
-
-//      Практика
-// 1. После того, как происходит очистка памяти на которую указывает указатель с помощью оператора delete[], попытаться проинициализировать эту память заново новым целочисленным динамическим массивом.

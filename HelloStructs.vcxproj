@@ -108,7 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatAngleIncludeAsExternal>true</TreatAngleIncludeAsExternal>
       <AdditionalIncludeDirectories>C:\Users\ChocoChocobo\source\repos\DLLRPO\DLLRPO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
