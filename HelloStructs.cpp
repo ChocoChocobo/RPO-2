@@ -7,7 +7,8 @@ struct Bullet
 {
     double speed = 0;
     double damage = 0;
-    float x, y = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
     bool isActive = false;
 
     void Init(double speed, double damage, float x, float y)
@@ -40,8 +41,8 @@ public:
         for (int i = 0; i < MAX_SIZE; i++)
         {
             std::unique_ptr<Bullet> bullet = std::make_unique<Bullet>();
-            objects.push_back(bullet);
             freeObjects.push_back(bullet.get());
+            objects.push_back(std::move(bullet));
         }
     }
 
@@ -58,8 +59,9 @@ public:
         else // Если доступного объекта нет, то создаем новый, занося его в массив высвобожденных объектов
         {
             std::unique_ptr<Bullet> bullet = std::make_unique<Bullet>();
-            objects.push_back(bullet);
-            return bullet.get();
+            Bullet* bulletPointer = bullet.get();
+            objects.push_back(std::move(bullet));
+            return bulletPointer;
         }
     }
 
